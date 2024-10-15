@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Electron App</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+      integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link href="../dist/output.css" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-gray-100 flex flex-col gap-4 h-screen justify-center items-center"
+  >
+    <section
+      class="absolute top-16 bg-amber-800 opacity-90 text-gray-100 px-5 py-5 rounded-md"
+    >
+      <span id="title" class="font-extrabold text-5xl">GLIDE-ROOM</span>
+    </section>
+
+    <section>
+      <h2 class="text-2xl text-amber-900">
+        Connect, Collaborate, Control: Anytime, Anywhere.
+      </h2>
+    </section>
+
+    <section id="moto">
+      <p class="text-body-2 text-amber-600">
+        Connecting You Anywhere: Video Calls and Remote Desktop Access for
+        Unified Collaboration
+      </p>
+    </section>
+
+    <section>
+      <form
+        class="flex flex-col space-y-3 items-center"
+        onsubmit="joinRoom(event)"
+      >
+        <p class="text-body-3 font-bold">Join a Session</p>
+        <div>
+          <fieldset>
+            <input
+              type="text"
+              id="roomInput"
+              placeholder="ex.Tzz___"
+              class="border w-32 border-amber-700 px-2 py-1"
+            />
+          </fieldset>
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="bg-amber-800 hover:bg-amber-700 px-5 py-1 text-white"
+          >
+            Join
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <script>
+      // Manually splitting the title into individual characters
+      const title = document.getElementById("title");
+      const titleChars = title.textContent
+        .split("")
+        .map((char) => `<span>${char}</span>`)
+        .join("");
+      title.innerHTML = titleChars;
+
+      // Manually splitting the moto text into individual characters
+      const moto = document.getElementById("moto").querySelector("p");
+      const motoChars = moto.textContent
+        .split("")
+        .map((char) => `<span>${char}</span>`)
+        .join("");
+      moto.innerHTML = motoChars;
+
+      // GSAP Animation for title
+      gsap.set("#title span", { perspective: 400 });
+      gsap.from("#title span", {
+        duration: 2,
+        opacity: 0,
+        scale: 0,
+        y: 80,
+        rotationX: 180,
+        transformOrigin: "0% 50% -50px",
+        ease: "back",
+        stagger: 0.05,
+      });
+
+      // GSAP Animation for moto (staggered characters)
+      gsap.set("#moto span", { perspective: 400 });
+      gsap.from("#moto span", {
+        duration: 0.1,
+        opacity: 0,
+        scale: 0,
+        y: 80,
+        rotationX: 180,
+        transformOrigin: "0% 50% -50px",
+        ease: "back",
+        stagger: 0.05,
+      });
+
+      window.onload = () => {
+        document.getElementById("roomInput").focus();
+      };
+
+      function joinRoom(event) {
+        event.preventDefault();
+        const room = document.getElementById("roomInput").value.trim();
+        if (room === "") {
+          return;
+        }
+        window.location.href = `./room.html?roomId=${room}`;
+      }
+    </script>
+  </body>
+</html>

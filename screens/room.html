@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="../dist/output.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <title>Video Room</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: rgb(197, 188, 188);
+        color: white;
+        font-family: Arial, sans-serif;
+      }
+
+      #notification {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        background-color: rgba(0, 0, 0, 0.75);
+        padding: 20px;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body class="h-screen flex flex-col">
+    <!-- <div id="notification">Connecting...</div>
+
+    <div class="video-container">
+      <div class="basis-11/12 bg-emerald-500 relative">
+        <video id="remoteVideo" autoplay></video>
+        <div class="my-video bg-red-700 h-48 w-48 absolute right-3 top-2">
+          <video id="myVideo" autoplay muted></video>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="shareScreenBtn">Share Screen</button>
+        <button id="leaveRoomBtn">Leave Room</button>
+        <div>Room Code: <span id="roomCode"></span></div>
+      </div>
+    </div> -->
+    <div id="notification">Connecting...</div>
+
+    <!-- remote users video  -->
+    <main
+      class="video-container flex items-center justify-center basis-11/12 relative"
+    >
+      <div class="my-video flex h-48 w-48 absolute right-3 top-2">
+        <video id="myVideo" class="h-full w-full" autoplay></video>
+      </div>
+      <div class="flex items-center justify-center h-full w-full">
+        <!-- Adjusted width and height -->
+        <video class="h-full" id="remoteVideo" autoplay></video>
+        <!-- Added w-full -->
+      </div>
+    </main>
+
+    <!-- footer  -->
+    <div class="basis-1/12">
+      <div
+        class="bg-black opacity-85 text-white w-full relative h-16 shadow-md flex items-center justify-between"
+      >
+        <div class="flex gap-2 px-2">
+          <span>Code:</span>
+          <p id="roomCode" class="bg-slate-300 text-black px-3 rounded-md"></p>
+          <div
+            class="hover:-translate-y-1 hover:duration-150"
+            id="copy-room-id"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="25"
+              fill="#f4ecec"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32Zm-8,128H176V88a8,8,0,0,0-8-8H96V48H208Z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <div class="bg-gray-50 shadow-md flex gap-3 px-3 py-1 rounded-lg">
+            <button
+              class="hover:scale-105 hover:duration-150 hover:-translate-y-1 hover:bg-slate-300 rounded-full p-1"
+              id="shareScreenBtn"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                fill="#000000"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8Zm-48,48a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,224Z"
+                ></path>
+              </svg>
+            </button>
+            <button
+              class="bg-red-500 hover:scale-105 hover:duration-150 hover:-translate-y-1 hover:bg-slate-300 rounded-full p-1"
+              id="CloseShareScreenBtn"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                fill="#000000"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8Zm-48,48a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,224Z"
+                ></path>
+              </svg>
+            </button>
+
+            <div
+              class="hover:scale-105 hover:duration-150 hover:-translate-y-1 hover:bg-slate-300 rounded-full p-1"
+              id="leaveRoomBtn"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                fill="#d00606"
+                viewBox="0 0 256 256"
+              >
+                <path
+                  d="M231.88,175.08A56.26,56.26,0,0,1,176,224C96.6,224,32,159.4,32,80A56.26,56.26,0,0,1,80.92,24.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,117.39,96c-.18.27-.37.52-.57.77L96,121.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,231.88,175.08Z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+    <script>
+      // Room ID (in real cases, this can be dynamic from URL or user input)
+      const urlParams = new URLSearchParams(window.location.search);
+
+      // Room ID (in real cases, this can be dynamic from URL or user input)
+      //Extract the roomId
+      const roomId = urlParams.get("roomId");
+      let remoteStreamVideo;
+      const roomID = roomId.toString();
+      // Function to copy room ID to clipboard
+      document.getElementById("copy-room-id").addEventListener("click", () => {
+        navigator.clipboard
+          .writeText(roomId)
+          .then(() => {
+            notification.innerText = "Room ID copied to clipboard!"; // Optional: show a notification
+            setTimeout(() => {
+              notification.innerText = "Connecting..."; // Reset the notification after a few seconds
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err); // Handle errors
+          });
+      });
+
+      //   console.log(roomID);
+      // Initialize socket connection to your backend server (replace with your server URL)
+      const socket = io(
+        "https://remote-conn-server-production.up.railway.app",
+        { transports: ["websocket", "polling"] }
+      );
+
+      // Initialize PeerJS connection
+      //   const peer = new Peer();
+
+      var peer = new Peer({
+        config: {
+          iceServers: [{ url: "stun:stun.l.google.com:19302" }],
+        } /* Sample servers, please use appropriate ones */,
+      });
+
+      let userStream; // Store user's media stream
+      let senders = []; // Store media stream senders (for screen sharing)
+      let remoteUserSocketId; // Store the socket ID of the remote user
+      let myPeerId; // Store this user's PeerJS ID
+
+      // Select elements for use later
+      const notification = document.getElementById("notification");
+      const myVideo = document.getElementById("myVideo");
+      const remoteVideo = document.getElementById("remoteVideo");
+      const roomCode = document.getElementById("roomCode");
+
+      // Display the room ID on the page
+      roomCode.innerText = roomID;
+
+      // Get user's video and audio stream
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          userStream = stream; // Save the local video/audio stream
+
+          // Display local video stream in the small preview window
+          myVideo.srcObject = stream;
+
+          // Listen for incoming calls
+          peer.on("call", (call) => {
+            // Answer the incoming call and send the local stream
+            call.answer(stream);
+
+            // When receiving the remote stream, display it in the main video element
+            call.on("stream", (remoteStream) => {
+              remoteStreamVideo = remoteStream; // Storing the remote stream
+              remoteVideo.srcObject = remoteStream; // Display the remote stream in the video element
+            });
+
+            // Save media senders to modify streams later (e.g., for screen sharing)
+            senders = call.peerConnection.getSenders();
+          });
+
+          // Join the room via socket connection
+          socket.emit("join room", roomID);
+        })
+        .catch((err) => {
+          console.error("Failed to get local stream", err); // Handle error getting user media
+        });
+
+      // When the peer connection is open and ready, get the peer ID
+      peer.on("open", (id) => {
+        myPeerId = id; // Store the user's PeerJS ID
+        notification.innerText = "Waiting for other user..."; // Notify the user
+        console.log(myPeerId);
+        // Notify the backend server that this user is ready
+        socket.emit("ready", { peerId: id });
+      });
+
+      // When another user joins the room
+      socket.on("other user", (userId) => {
+        remoteUserSocketId = userId; // Store the remote user's socket ID
+        // Ask for the remote user's PeerJS ID
+        socket.emit("getPeerId", { to: userId, peerId: myPeerId });
+      });
+
+      // When the backend provides the remote user's PeerJS ID
+      socket.on("takePeerId", (peerId) => {
+        // Call the remote user using PeerJS with the stored local stream
+        const call = peer.call(peerId, userStream);
+
+        // When receiving the remote stream, display it in the main video element
+        call.on("stream", (remoteStream) => {
+          remoteStreamVideo = remoteStream; // Storing the remote stream
+          remoteVideo.srcObject = remoteStream; // Display the remote stream in the video element
+        });
+
+        // Save media senders for future stream replacements (e.g., screen sharing)
+        senders = call.peerConnection.getSenders();
+      });
+
+      const revertOriginalVideo = async () => {
+        const originalVideoTrack = userStream
+          .getTracks()
+          .find((track) => track.kind === "video");
+        const videoSender = senders.find(
+          (sender) => sender.track.kind === "video"
+        );
+
+        if (videoSender && originalVideoTrack) {
+          videoSender.replaceTrack(originalVideoTrack); // Replace screen track with original video track
+          const remoteVideo = document.getElementById("remoteVideo");
+          remoteVideo.srcObject = remoteStreamVideo; // Clear the video element
+        }
+      };
+
+      document
+        .getElementById("CloseShareScreenBtn")
+        .addEventListener("click", async () => {
+          console.log("Close Button clicked");
+          revertOriginalVideo();
+        });
+
+      document
+        .getElementById("shareScreenBtn")
+        .addEventListener("click", async () => {
+          console.log("ShareScreen Clicked here");
+
+          try {
+            // Request screen capture sources
+            const sources = await window.electron.requestScreenCapture();
+
+            // Here, you can choose the source to share (for example, the first source)
+            const source = sources[0];
+
+            // Create a media stream from the selected source
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                mandatory: {
+                  chromeMediaSource: "screen",
+                  chromeMediaSourceId: source.id,
+                },
+              },
+            });
+
+            // Get the screen track from the stream
+            const screenTrack = stream.getTracks()[0]; // Ensure you extract the screen track
+
+            // Find the video sender (to replace it with screen sharing stream)
+            const videoSender = senders.find(
+              (sender) => sender.track.kind === "video"
+            );
+
+            // Replace the video track with the screen track
+            if (videoSender) {
+              videoSender.replaceTrack(screenTrack);
+            }
+
+            // Assuming you have a video element to display the shared screen
+            const remoteVideo = document.getElementById("remoteVideo");
+            remoteVideo.srcObject = stream; // Set the stream to the video element
+
+            // Handle when the screen sharing stops
+            screenTrack.onended = () => {
+              // Revert back to the original video track if necessary
+              const originalVideoTrack = userStream
+                .getTracks()
+                .find((track) => track.kind === "video");
+              if (videoSender && originalVideoTrack) {
+                videoSender.replaceTrack(originalVideoTrack);
+                remoteVideo.srcObject = null; // Clear the video element
+              }
+            };
+          } catch (error) {
+            console.log("Error capturing screen:", error);
+          }
+        });
+
+      document.getElementById("leaveRoomBtn").addEventListener("click", () => {
+        console.log("Leave Room");
+        socket.disconnect();
+        peer.disconnect();
+        window.location.href = "./index.html"; // Redirect to home page
+      });
+
+      // Notify when another user joins the room
+      socket.on("user joined", (userId) => {
+        remoteUserSocketId = userId; // Store the remote user's socket ID
+        notification.innerText = "User joined!"; // Display notification
+        setTimeout(() => {
+          notification.style.display = "none"; // Hide the notification after a few seconds
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>

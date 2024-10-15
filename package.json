@@ -1,0 +1,25 @@
+{
+  "name": "cse499desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build:css": "tailwindcss -i ./styles.css -o ./dist/output.css --watch",
+    "dev": "electronmon ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "electron": "^32.1.2",
+    "electronmon": "^2.0.3",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.0"
+  }
+}
