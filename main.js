@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron');
 const path = require('node:path');
+const { mouse }=require("@nut-tree-fork/nut-js")
+
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -40,3 +42,11 @@ ipcMain.handle('request-screen-capture', async () => {
   const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
   return sources; // Return available sources for screen sharing
 });
+// Listen for mouse position from the renderer 
+ipcMain.on("sendMousePosition",async(event,pos)=>{
+  // console.log('Mouse Position Received in Main:', pos); // Log the received position
+  // Handle the received position here as needed
+  await mouse.move({x:pos.x,y:pos.y});
+  console.log(`Mouse moved to (${pos.x}, ${pos.y})`);
+ 
+})

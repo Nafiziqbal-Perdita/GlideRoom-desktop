@@ -171,6 +171,7 @@
       // Initialize socket connection to your backend server (replace with your server URL)
       const socket = io(
         "https://remote-conn-server-production.up.railway.app",
+        // "http://localhost:7000",
         { transports: ["websocket", "polling"] }
       );
 
@@ -350,6 +351,16 @@
         setTimeout(() => {
           notification.style.display = "none"; // Hide the notification after a few seconds
         }, 2000);
+      });
+
+      // Receive the mouse position from the server
+      socket.on("onMouseMove", (pos) => {
+        console.log("Mouse Position Received:", pos.x, pos.y);
+        const mousePosition = {
+          x: pos.x,
+          y: pos.y,
+        };
+        window.electron.sendMousePosition(mousePosition);
       });
     </script>
   </body>
